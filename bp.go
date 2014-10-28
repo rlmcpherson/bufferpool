@@ -5,14 +5,16 @@ import (
 	"container/list"
 )
 
+// BP includes Get and Give directional channels for retrieving and returning buffers
 type BP struct {
-	Get   <-chan *bytes.Buffer
-	Give  chan<- *bytes.Buffer
-	Makes int
+	Get   <-chan *bytes.Buffer // Get a buffer from the pool
+	Give  chan<- *bytes.Buffer // Give a buffer to be stored in the pool
+	Makes int                  // total buffers allocated
 	quit  chan struct{}
 }
 
-func newBufferPool(bufsz int) *BP {
+// New initalizes a new buffer pool
+func New(bufsz int) *BP {
 	get := make(chan *bytes.Buffer)
 	give := make(chan *bytes.Buffer)
 	np := &BP{
@@ -45,6 +47,7 @@ func newBufferPool(bufsz int) *BP {
 	return np
 }
 
+// Shutdown terminates the pool, closing the Get and Give channels and freeing pool buffers to be garbage collected
 func (bp *BP) Shutdown() {
 	close(bp.quit)
 	<-bp.Get // wait for close
